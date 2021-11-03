@@ -99,16 +99,16 @@ RSpec.describe SnFoil::Controller do
     end
 
     describe '#serialize' do
+      let(:object) { double }
+      let(:serializer) { double }
+      let(:serializer_instance) { double }
+
+      before do
+        allow(serializer).to receive(:new).and_return(serializer_instance)
+        allow(serializer_instance).to receive(:to_hash).and_return({})
+      end
+
       context 'when a serializer is configured' do
-        let(:object) { double }
-        let(:serializer) { double }
-        let(:serializer_instance) { double }
-
-        before do
-          allow(serializer).to receive(:new).and_return(serializer_instance)
-          allow(serializer_instance).to receive(:to_hash).and_return({})
-        end
-
         it 'calls the serializer and uses the default call' do
           including_class.serializer serializer
           including_class.new.serialize(object)
@@ -118,26 +118,139 @@ RSpec.describe SnFoil::Controller do
 
         context 'when a block is configured' do
           before do
-            including_class.serializer(serializer) do |object, serializer, **options|
-              options[:canary].sing({ object: object, serializer: serializer, m: '1' })
+            including_class.serializer(serializer) do |_o, _s, **options|
+              options[:canary].sing('class block')
             end
           end
 
           it 'uses the block to process the call' do
             including_class.new.serialize(object, canary: canary)
             expect(serializer).not_to have_received(:new)
-            expect(canary.song[0][:data]).to eq({ object: object, serializer: serializer, m: '1' })
+            expect(canary.sung?('class block')).to be true
           end
         end
 
         context 'when a block is passed in the options' do
+          before do
+            including_class.serializer(serializer)
+          end
+
+          it 'uses the block to process the call' do
+            block = proc { |_o, _s, **options| options[:canary].sing('options block') }
+            including_class.new.serialize(object, canary: canary, serialize: block)
+
+            expect(serializer).not_to have_received(:new)
+            expect(canary.sung?('options block')).to be true
+          end
+        end
+
+        context 'when a method is passed in the options' do
+          before do
+            including_class.define_method(:method_serialize) do |_o, _s, **options|
+              options[:canary].sing('options method')
+            end
+            including_class.serializer(serializer)
+          end
+
+          it 'uses the method to process the call' do
+            including_class.new.serialize(object, canary: canary, serialize_with: :method_serialize)
+
+            expect(serializer).not_to have_received(:new)
+            expect(canary.sung?('options method')).to be true
+          end
+        end
+      end
+
+      context 'when a serializer is in the options' do
+        it 'uses the serializers passed in' do
+          including_class.new.serialize(object, serializer: serializer)
+          expect(serializer).to have_received(:new).with(object, anything)
+          expect(serializer_instance).to have_received :to_hash
         end
       end
 
       context 'when a serializer is not configured' do
+        it 'returns the object without alteration' do
+          expect(including_class.new.serialize(object)).to eq object
+        end
+      end
+    end
+
+    describe '#deserialize' do
+      let(:params) { {} }
+      let(:deserializer) { double }
+      let(:deserializer_instance) { double }
+
+      before do
+        allow(deserializer).to receive(:new).and_return(deserializer_instance)
+        allow(deserializer_instance).to receive(:to_hash).and_return({})
       end
 
-      context 'when a serializer is in the options' do
+      context 'when a deserializer is configured' do
+        it 'calls the deserializer and uses the default call' do
+          including_class.deserializer deserializer
+          including_class.new.deserialize(params)
+          expect(deserializer).to have_received(:new).with(params, anything)
+          expect(deserializer_instance).to have_received :to_hash
+        end
+
+        context 'when a block is configured' do
+          before do
+            including_class.deserializer(deserializer) do |_o, _s, **options|
+              options[:canary].sing('class block')
+            end
+          end
+
+          it 'uses the block to process the call' do
+            including_class.new.deserialize(params, canary: canary)
+            expect(deserializer).not_to have_received(:new)
+            expect(canary.sung?('class block')).to be true
+          end
+        end
+
+        context 'when a block is passed in the options' do
+          before do
+            including_class.deserializer(deserializer)
+          end
+
+          it 'uses the block to process the call' do
+            block = proc { |_o, _s, **options| options[:canary].sing('options block') }
+            including_class.new.deserialize(params, canary: canary, deserialize: block)
+
+            expect(deserializer).not_to have_received(:new)
+            expect(canary.sung?('options block')).to be true
+          end
+        end
+
+        context 'when a method is passed in the options' do
+          before do
+            including_class.define_method(:method_deserialize) do |_o, _s, **options|
+              options[:canary].sing('options method')
+            end
+            including_class.deserializer(deserializer)
+          end
+
+          it 'uses the method to process the call' do
+            including_class.new.deserialize(params, canary: canary, deserialize_with: :method_deserialize)
+
+            expect(deserializer).not_to have_received(:new)
+            expect(canary.sung?('options method')).to be true
+          end
+        end
+      end
+
+      context 'when a deserializer is in the options' do
+        it 'uses the deserializers passed in' do
+          including_class.new.deserialize(params, deserializer: deserializer)
+          expect(deserializer).to have_received(:new).with(params, anything)
+          expect(deserializer_instance).to have_received :to_hash
+        end
+      end
+
+      context 'when a deserializer is not configured' do
+        it 'returns the params without alteration' do
+          expect(including_class.new.deserialize(params)).to eq params
+        end
       end
     end
   end

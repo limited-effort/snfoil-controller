@@ -10,21 +10,21 @@ module SnFoil
 
       included do
         include SnFoil::Deserializer::Base
+
+        module_eval do
+          def parse
+            if object[:data].is_a? Array
+              object[:data].map { |d| build_attributes(d) }
+            else
+              build_attributes(object[:data])
+            end
+          end
+        end
       end
 
       def included
         @included ||= options[:included] || object[:included]
       end
-
-      def parse
-        if object[:data].is_a? Array
-          object[:data].map { |d| build_attributes(d) }
-        else
-          build_attributes(object[:data])
-        end
-      end
-      alias to_h parse
-      alias to_hash parse
 
       private
 

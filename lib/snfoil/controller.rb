@@ -17,6 +17,8 @@
 require 'active_support/concern'
 require 'snfoil/context'
 
+require_relative 'deserializer/jsonapi'
+
 module SnFoil
   module Controller
     extend ActiveSupport::Concern
@@ -74,7 +76,7 @@ module SnFoil
 
     def deserialize(params, **options)
       deserializer = options.fetch(:deserializer) { self.class.snfoil_deserializer }
-      return object unless deserializer
+      return params unless deserializer
 
       exec_deserialize(deserializer, params, **options)
     end
@@ -114,11 +116,11 @@ module SnFoil
     def exec_deserialize(deserializer, params, **options)
       deserializer_block = options.fetch(:deserialize) { self.class.snfoil_deserializer_block }
       if options[:deserialize_with]
-        send(options[:deserialize_with], object, deserializer, **options, current_entity: entity)
+        send(options[:deserialize_with], params, deserializer, **options, current_entity: entity)
       elsif deserializer_block
-        instance_exec(object, deserializer, **options, current_entity: entity, &deserializer_block)
+        instance_exec(params, deserializer, **options, current_entity: entity, &deserializer_block)
       else
-        deserializer.new(object, **options, current_entity: entity).to_hash
+        deserializer.new(params, **options, current_entity: entity).to_hash
       end
     end
   end
