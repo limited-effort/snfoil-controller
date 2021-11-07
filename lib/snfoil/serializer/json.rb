@@ -24,7 +24,7 @@ module SnFoil
       def intialize(params, **options)
         @params = params
         @options = options
-      end      
+      end
     end
   end
 end

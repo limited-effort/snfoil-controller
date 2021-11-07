@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_support/concern'
-require "active_support/core_ext/string/inflections"
-
+require 'active_support/core_ext/string/inflections'
 
 module SnFoil
   module Deserializer
@@ -23,19 +22,16 @@ module SnFoil
         end
 
         def attribute(key, **options)
-          @snfoil_attribute_transforms ||= {}
-          @snfoil_attribute_transforms[key] = options.merge(transform_type: :attribute)
+          (@snfoil_attribute_transforms ||= {})[key] = options.merge(transform_type: :attribute)
         end
 
         def belongs_to(key, deserializer:, **options)
-          @snfoil_attribute_transforms ||= {}
-          @snfoil_attribute_transforms[key] = options.merge(deserializer: deserializer, transform_type: :has_one)
+          (@snfoil_attribute_transforms ||= {})[key] = options.merge(deserializer: deserializer, transform_type: :has_one)
         end
         alias_method :has_one, :belongs_to
 
         def has_many(key, deserializer:, **options) # rubocop:disable Naming/PredicateName
-          @snfoil_attribute_transforms ||= {}
-          @snfoil_attribute_transforms[key] = options.merge(deserializer: deserializer, transform_type: :has_many)
+          (@snfoil_attribute_transforms ||= {})[key] = options.merge(deserializer: deserializer, transform_type: :has_many)
         end
 
         def inherited(subclass)
@@ -80,20 +76,29 @@ module SnFoil
         end
 
         object.transform_values do |value|
-          if value.is_a? Hash
-            key_transform(value)
-          else
-            value
-          end
+          value_transform(value)
+        end
+      end
+
+      def value_transform(value)
+        case value
+        when Hash
+          key_transform(value)
+        when Array
+          value.map { |v| value_transform(v) }
+        else
+          value
         end
       end
 
       def process_key_transform(key)
-        case self.class.snfoil_key_transform
+        @snfoil_key_transform ||= self.class.snfoil_key_transform ||
+                                  :underscore
+        case @snfoil_key_transform
         when Symbol
-          key.send(self.class.snfoil_key_transform)
+          key.to_s.send(@snfoil_key_transform)
         when Proc
-          self.class.snfoil_key_transform.call(key)
+          @snfoil_key_transform.call(key.to_s)
         else
           key
         end.to_sym

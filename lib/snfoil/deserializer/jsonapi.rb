@@ -82,7 +82,7 @@ module SnFoil
         return attributes unless resource_data
 
         resource_data = data_id(resource_data, resource_data)
-        attribute_data = lookup_relationship(resource_data)
+        attribute_data = lookup_relationship(**resource_data)
         relationship_data = { data: attribute_data || resource_data }
         attributes[opts.fetch(:key) { key }] = deserializer.new(relationship_data, **options, included: included).parse
         attributes
@@ -94,7 +94,7 @@ module SnFoil
 
         attributes[opts.fetch(:key) { key }] = array_data.map do |resource_data|
           resource_data = data_id(resource_data, resource_data)
-          attribute_data = lookup_relationship(resource_data)
+          attribute_data = lookup_relationship(**resource_data)
           relationship_data = { data: attribute_data || resource_data }
           deserializer.new(relationship_data, **options, included: included).parse
         end
