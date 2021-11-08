@@ -50,18 +50,6 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
     end
   end
 
-  describe '#initialize' do
-    let(:instance) { subject.new(request, foo: 'bar', fizz: 'bang') }
-
-    # it 'assigns value to object' do
-    #   expect(instance.object).to eq(request)
-    # end
-
-    # it 'assigns hash values to options' do
-    #   expect(instance.options).to eq(foo: 'bar', fizz: 'bang')
-    # end
-  end
-
   describe '#parse' do
     let(:parsed_value) { TestDeserializer.new(request).parse }
 
