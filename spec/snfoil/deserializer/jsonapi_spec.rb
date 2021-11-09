@@ -9,47 +9,6 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
     JSON.parse(File.read('spec/fixtures/deserialize_jsonapi.json'))
   end
 
-  describe '#self.attributes' do
-    it 'assigns values to attributes class variable' do
-      expect(TestDeserializer.new(request).attributes).to include(:name, :description)
-    end
-
-    it 'ignores repeat values' do
-      name_count = TestDeserializer.new(request).attributes.count { |x| x == :name }
-      expect(name_count).to eq 1
-    end
-  end
-
-  describe '#self.attribute' do
-    it 'adds the key to the attributes' do
-      expect(TestDeserializer.new(request).attributes).to include(:other)
-    end
-
-    context 'with a key options' do
-      it 'adds the key to the attributes' do
-        expect(TestDeserializer.new(request).attributes).to include(:transformed)
-      end
-    end
-  end
-
-  describe '#self.has_one' do
-    it 'adds the key to the attributes' do
-      expect(TestDeserializer.new(request).attributes).to include(:versions)
-    end
-
-    context 'with a key options' do
-      it 'adds the key to the attributes' do
-        expect(TestDeserializer.new(request).attributes).to include(:envs)
-      end
-    end
-  end
-
-  describe '#self.has_many' do
-    it 'adds the key to the attributes' do
-      expect(TestDeserializer.new(request).attributes).to include(:versions)
-    end
-  end
-
   describe '#parse' do
     let(:parsed_value) { TestDeserializer.new(request).parse }
 

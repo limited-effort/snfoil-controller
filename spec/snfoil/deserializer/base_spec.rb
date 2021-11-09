@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe SnFoil::Deserializer::JSONAPI do
-  subject(:deserializer) { TestDeserializer }
+  subject(:deserializer) { TestDeserializer.clone }
 
   let(:request) do
     JSON.parse(File.read('spec/fixtures/deserialize_jsonapi.json'))
@@ -45,15 +45,45 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
   end
 
   describe '#initialize' do
-    let(:instance) { subject.new(request, foo: 'bar', fizz: 'bang') }
+    let(:input) { deserializer.new(request).input }
 
-    # it 'assigns value to object' do
-    #   expect(instance.object).to eq(request)
-    # end
+    context 'with no key_transform set' do
+      it 'defaults to :underscore' do
+        expect(input[:data][:attributes][:two_word]).to eq 'keys'
+      end
 
-    # it 'assigns hash values to options' do
-    #   expect(instance.options).to eq(foo: 'bar', fizz: 'bang')
-    # end
+      it 'always to_syms the final product' do
+        expect(input.keys).to include :data
+        expect(input.keys).not_to include 'data'
+      end
+    end
+
+    context 'when key_transform => any_inflector' do
+      before do
+        deserializer.key_transform :upcase
+      end
+
+      it 'always to_syms the final product' do
+        expect(input.keys).to include :DATA
+        expect(input.keys).not_to include :data
+      end
+    end
+
+    context 'when key_transform => &block' do
+      before do
+        deserializer.key_transform { |k| "attr_#{k.upcase}" }
+      end
+
+      it 'uses the transform' do
+        expect(input.keys).to include :attr_DATA
+        expect(input.keys).not_to include :data
+      end
+
+      it 'always to_syms the final product' do
+        expect(input.keys).to include :attr_DATA
+        expect(input.keys).not_to include 'attr_DATA'
+      end
+    end
   end
 
   describe '#parse' do

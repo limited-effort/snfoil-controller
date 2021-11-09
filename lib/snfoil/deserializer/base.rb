@@ -12,8 +12,8 @@ module SnFoil
         attr_reader :snfoil_attribute_fields, :snfoil_attribute_transforms,
                     :snfoil_key_transform
 
-        def key_transform(transform)
-          @snfoil_key_transform = transform
+        def key_transform(transform = nil, &block)
+          @snfoil_key_transform = transform || block
         end
 
         def attributes(*fields)
@@ -43,10 +43,10 @@ module SnFoil
         end
       end
 
-      attr_reader :object, :options
+      attr_reader :input, :options
 
-      def initialize(object, **options)
-        @object = key_transform(object)
+      def initialize(input, **options)
+        @input = key_transform(input)
         @options = options
       end
 
@@ -70,12 +70,12 @@ module SnFoil
 
       private
 
-      def key_transform(object)
-        object = object.transform_keys do |key|
+      def key_transform(hash)
+        hash = hash.transform_keys do |key|
           process_key_transform(key)
         end
 
-        object.transform_values do |value|
+        hash.transform_values do |value|
           value_transform(value)
         end
       end
