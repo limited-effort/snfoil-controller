@@ -3,14 +3,14 @@
 require 'spec_helper'
 
 RSpec.describe SnFoil::Deserializer::JSONAPI do
-  subject(:deserializer) { TestDeserializer }
+  subject(:deserializer) { TestJsonapiDeserializer }
 
   let(:request) do
     JSON.parse(File.read('spec/fixtures/deserialize_jsonapi.json'))
   end
 
   describe '#parse' do
-    let(:parsed_value) { TestDeserializer.new(request).parse }
+    let(:parsed_value) { TestJsonapiDeserializer.new(request).parse }
 
     it 'sets the id of the object' do
       expect(parsed_value[:lid]).to eq('b9037e4a-ba86-4e0d-960c-c793baeee678')
@@ -54,13 +54,13 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
   end
 end
 
-class MiscDeserializer
+class MiscJsonapiDeserializer
   include SnFoil::Deserializer::JSONAPI
 
   attribute :name
 end
 
-class TestDeserializer
+class TestJsonapiDeserializer
   include SnFoil::Deserializer::JSONAPI
 
   attributes :name, :description
@@ -69,8 +69,8 @@ class TestDeserializer
   attribute :other
   attribute(:odd, key: :transformed)
 
-  has_one(:target, key: :author, deserializer: MiscDeserializer)
-  has_one(:owner, deserializer: MiscDeserializer)
-  has_many(:environments, key: :envs, deserializer: MiscDeserializer)
-  has_many(:versions, deserializer: MiscDeserializer)
+  has_one(:target, key: :author, deserializer: MiscJsonapiDeserializer)
+  has_one(:owner, deserializer: MiscJsonapiDeserializer)
+  has_many(:environments, key: :envs, deserializer: MiscJsonapiDeserializer)
+  has_many(:versions, deserializer: MiscJsonapiDeserializer)
 end

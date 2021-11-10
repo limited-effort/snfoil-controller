@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe SnFoil::Deserializer::JSONAPI do
-  subject(:deserializer) { TestDeserializer.clone }
+  subject(:deserializer) { TestBaseDeserializer.clone }
 
   let(:request) do
     JSON.parse(File.read('spec/fixtures/deserialize_jsonapi.json'))
@@ -11,11 +11,11 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
 
   describe '#self.attributes' do
     it 'assigns values to attributes class variable' do
-      expect(deserializer.snfoil_attribute_fields).to include(:name, :description)
+      expect(deserializer.snfoil_attribute_transforms.keys).to include(:name, :description)
     end
 
     it 'ignores repeat values' do
-      name_count = deserializer.snfoil_attribute_fields.count { |x| x == :name }
+      name_count = deserializer.snfoil_attribute_transforms.keys.count { |x| x == :name }
       expect(name_count).to eq 1
     end
   end
@@ -95,13 +95,13 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
   end
 end
 
-class MiscDeserializer
+class MiscBaseDeserializer
   include SnFoil::Deserializer::Base
 
   attribute :name
 end
 
-class TestDeserializer
+class TestBaseDeserializer
   include SnFoil::Deserializer::Base
 
   key_transform :underscore
@@ -112,8 +112,8 @@ class TestDeserializer
   attribute :other
   attribute(:odd, key: :transformed)
 
-  has_one(:target, key: :author, deserializer: MiscDeserializer)
-  has_one(:owner, deserializer: MiscDeserializer)
-  has_many(:environments, key: :envs, deserializer: MiscDeserializer)
-  has_many(:versions, deserializer: MiscDeserializer)
+  has_one(:target, key: :author, deserializer: MiscBaseDeserializer)
+  has_one(:owner, deserializer: MiscBaseDeserializer)
+  has_many(:environments, key: :envs, deserializer: MiscBaseDeserializer)
+  has_many(:versions, deserializer: MiscBaseDeserializer)
 end

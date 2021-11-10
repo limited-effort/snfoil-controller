@@ -13,24 +13,23 @@ module SnFoil
 
         module_eval do
           def parse
-            if object[:data].is_a? Array
-              object[:data].map { |d| build_attributes(d) }
+            if input[:data].is_a? Array
+              input[:data].map { |d| build_attributes(d) }
             else
-              build_attributes(object[:data])
+              build_attributes(input[:data])
             end
           end
         end
       end
 
       def included
-        @included ||= options[:included] || object[:included]
+        @included ||= options[:included] || input[:included]
       end
 
       private
 
       def build_attributes(data)
         attributes = data_id({}, data)
-        attributes = parse_standard_attributes(attributes, data) if data[:attributes]
         attribute_transforms.each do |key, opts|
           attributes = apply_attribute_transform(attributes, data, key, **opts)
         end
@@ -44,10 +43,6 @@ module SnFoil
           attributes[:lid] = data[:'local:id']
         end
         attributes
-      end
-
-      def parse_standard_attributes(attributes, data)
-        attributes.merge!(data[:attributes].select { |k, _| attribute_fields.include? k })
       end
 
       def apply_attribute_transform(attributes, data, key, transform_type:, **opts)

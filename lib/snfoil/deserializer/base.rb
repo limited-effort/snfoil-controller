@@ -9,16 +9,15 @@ module SnFoil
       extend ActiveSupport::Concern
 
       class_methods do
-        attr_reader :snfoil_attribute_fields, :snfoil_attribute_transforms,
+        attr_reader :snfoil_attribute_transforms,
                     :snfoil_key_transform
 
         def key_transform(transform = nil, &block)
           @snfoil_key_transform = transform || block
         end
 
-        def attributes(*fields)
-          @snfoil_attribute_fields ||= []
-          @snfoil_attribute_fields |= fields
+        def attributes(*fields, **options)
+          fields.each { |field| attribute(field, **options) }
         end
 
         def attribute(key, **options)
@@ -43,6 +42,18 @@ module SnFoil
         end
       end
 
+      included do
+        def parse
+          raise '#parse not implemented'
+        end
+
+        def to_hash
+          parse
+        end
+
+        alias to_h to_hash
+      end
+
       attr_reader :input, :options
 
       def initialize(input, **options)
@@ -50,23 +61,9 @@ module SnFoil
         @options = options
       end
 
-      def attribute_fields
-        self.class.snfoil_attribute_fields || []
-      end
-
       def attribute_transforms
         self.class.snfoil_attribute_transforms || {}
       end
-
-      def parse
-        raise '#parse not implemented'
-      end
-
-      def to_hash
-        parse
-      end
-
-      alias to_h to_hash
 
       private
 
