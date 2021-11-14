@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'snfoil/deserializer/base'
 
-RSpec.describe SnFoil::Deserializer::JSONAPI do
+RSpec.describe SnFoil::Deserializer::Base do
   subject(:deserializer) { TestBaseDeserializer.clone }
 
   let(:request) do

@@ -43,6 +43,13 @@ module SnFoil
       end
 
       included do
+        attr_reader :input, :options
+
+        def initialize(input, **options)
+          @input = key_transform(input)
+          @options = options
+        end
+
         def parse
           raise '#parse not implemented'
         end
@@ -51,18 +58,8 @@ module SnFoil
           parse
         end
 
-        alias to_h to_hash
-      end
-
-      attr_reader :input, :options
-
-      def initialize(input, **options)
-        @input = key_transform(input)
-        @options = options
-      end
-
-      def attribute_transforms
-        self.class.snfoil_attribute_transforms || {}
+        alias_method :to_hash, :parse
+        alias_method :to_h, :parse
       end
 
       private

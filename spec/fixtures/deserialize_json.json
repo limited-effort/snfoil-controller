@@ -1,55 +1,27 @@
 {
   "_comment": "THIS ISN'T REAL DATA AND SHOULD NOT BE TREATED AS SUCH",
-  "data": {
-    "type": "forms",
-    "local:id": "b9037e4a-ba86-4e0d-960c-c793baeee678",
-    "attributes": {
-      "name": "Test Form",
-      "description": "A really great form",
-      "other": "other",
-      "odd": "z-o-r-p",
-      "two-word": "keys"
-    },
-    "relationships": {
-      "environments": {
-        "data": [
-          { "type": "environments", "id": "1" },
-          { "type": "environments", "id": "2" }
-        ]
-      },
-      "versions": {
-        "data": [
-          { "type": "versions", "local:id": "376bb503-4cf2-4f9b-9597-d2d3f9cdf398" }
-        ]
-      },
-      "owner": {
-        "data": {
-          "type": "clients",
-          "id": "1"
-        }
-      },
-      "target": {
-        "data": {
-          "type": "clients",
-          "local:id": "a4217889-4997-456c-99ce-cda87a1b5448"
-        }
-      }
-    }
-  },
-  "included": [
+  "local:id": "b9037e4a-ba86-4e0d-960c-c793baeee678",
+  "name": "Test Form",
+  "description": "A really great form",
+  "other": "other",
+  "odd": "z-o-r-p",
+  "two-word": "keys",
+  "prefixed-interesting": "tetris",
+  "environments": [
+    {"id": "1"},
+    {"id": "2"}
+  ],
+  "versions": [
     {
-      "type": "versions",
       "local:id": "376bb503-4cf2-4f9b-9597-d2d3f9cdf398",
-      "attributes": {
-        "name": "initial-commit"
-      }
-    },
-    {
-      "type": "clients",
-      "local:id": "a4217889-4997-456c-99ce-cda87a1b5448",
-      "attributes": {
-        "name": "harold"
-      }
+      "name": "initial-commit"
     }
-  ]
+  ],
+  "owner": {
+    "id": "1"
+  },
+  "target": {
+    "local:id": "a4217889-4997-456c-99ce-cda87a1b5448",
+    "name": "harold"
+  }
 }

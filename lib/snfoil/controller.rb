@@ -17,8 +17,6 @@
 require 'active_support/concern'
 require 'snfoil/context'
 
-require_relative 'deserializer/jsonapi'
-
 module SnFoil
   module Controller
     extend ActiveSupport::Concern
