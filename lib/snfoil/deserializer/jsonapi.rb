@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_support/concern'
-require_relative 'base'
+require_relative 'json'
 
 module SnFoil
   module Deserializer
@@ -9,108 +9,87 @@ module SnFoil
       extend ActiveSupport::Concern
 
       included do
-        include SnFoil::Deserializer::Base
+        include SnFoil::Deserializer::JSON
 
         module_eval do
           def parse
-            if input[:data].is_a? Array
-              input[:data].map { |d| build_attributes(d) }
-            else
-              build_attributes(input[:data])
-            end
+            input = data[:data] || data
+            return apply_transforms(data_id({}, input), input) unless input.is_a? Array
+
+            input.map { |d| apply_transforms(data_id({}, d), d) }
           end
         end
-      end
 
-      def included
-        @included ||= options[:included] || input[:included]
-      end
-
-      private
-
-      def build_attributes(data)
-        attributes = data_id({}, data)
-        attribute_transforms.each do |key, opts|
-          attributes = apply_attribute_transform(attributes, data, key, **opts)
+        def included
+          @included ||= config[:included] || data[:included]
         end
-        attributes
-      end
 
-      def data_id(attributes, data)
-        if data[:id]
-          attributes[:id] = data[:id]
-        elsif data[:'local:id']
-          attributes[:lid] = data[:'local:id']
+        private
+
+        def data_id(output, data)
+          if data[:id]
+            output[:id] = data[:id]
+          elsif data[:'local:id']
+            output[:'local:id'] = data[:'local:id']
+          end
+
+          output
         end
-        attributes
-      end
 
-      def apply_attribute_transform(attributes, data, key, transform_type:, **opts)
-        case transform_type
-        when :attribute
-          parse_attribute_transform(attributes, data, key, **opts)
-        when :has_one
-          parse_has_one_relationship(attributes, data, key, **opts)
-        when :has_many
-          parse_has_many_relationship(attributes, data, key, **opts)
+        def parse_attribute_transform(output, input, key, **options)
+          value = find_attribute(input[:attributes], key, **options)
+          return output unless value
+
+          output.merge key => value
         end
-      end
 
-      def parse_attribute_transform(attributes, data, key, **opts)
-        return attributes unless data.dig(:attributes, key)
+        def parse_has_one_transform(output, input, key, deserializer:, **options)
+          resource_data = find_relationship(input, key, **options)
+          return output unless resource_data
 
-        attributes.merge({ opts.fetch(:key) { key } => data[:attributes][key] })
-      end
-
-      def parse_relationships(attributes, data)
-        self.class.has_one_relationships.each do |key, opts|
-          attributes = has_one_relationship(attributes, data, key, **opts)
+          output[key] = deserializer.new(resource_data, **options, included: included).parse
+          output
         end
-        self.class.has_many_relationships.each do |key, opts|
-          attributes = has_many_relationship(attributes, data, key, **opts)
+
+        def parse_has_many_transform(output, input, key, deserializer:, **options)
+          resource_data = find_relationships(input, key, **options)
+          return output unless resource_data
+
+          output[key] = resource_data.map { |r| deserializer.new(r, **options, included: included).parse }
+          output
         end
-        attributes
-      end
 
-      def parse_has_one_relationship(attributes, data, key, deserializer:, **opts)
-        resource_data = data.dig(:relationships, key, :data)
-        return attributes unless resource_data
+        def find_relationships(input, key, **options)
+          array_data = find_attribute(input[:relationships], key, **options)
+          return unless array_data
 
-        resource_data = data_id(resource_data, resource_data)
-        attribute_data = lookup_relationship(**resource_data)
-        relationship_data = { data: attribute_data || resource_data }
-        attributes[opts.fetch(:key) { key }] = deserializer.new(relationship_data, **options, included: included).parse
-        attributes
-      end
-
-      def parse_has_many_relationship(attributes, data, key, deserializer:, **opts)
-        array_data = data.dig(:relationships, key, :data)
-        return attributes unless array_data
-
-        attributes[opts.fetch(:key) { key }] = array_data.map do |resource_data|
-          resource_data = data_id(resource_data, resource_data)
-          attribute_data = lookup_relationship(**resource_data)
-          relationship_data = { data: attribute_data || resource_data }
-          deserializer.new(relationship_data, **options, included: included).parse
+          array_data = array_data[:data]
+          array_data = [array_data] unless array_data.is_a? Array
+          array_data.map do |resource_data|
+            lookup_relationship(**resource_data) || resource_data
+          end
         end
-        attributes
-      end
 
-      def lookup_relationship(type:, id: nil, lid: nil, **_opts)
-        check_for_id(id, lid)
+        def find_relationship(input, key, **options)
+          resource_data = find_attribute(input[:relationships], key, **options)
+          return unless resource_data
 
-        included&.find do |x|
-          x[:type].eql?(type) &&
-            if id
-              x[:id].eql?(id)
-            elsif lid
-              x[:'local:id'].eql?(lid)
-            end
+          lookup_relationship(**resource_data[:data]) || resource_data
         end
-      end
 
-      def check_for_id(id, lid)
-        raise ::ArgumentError, "missing keyword: id or lid for type: #{type}" unless id || lid
+        def lookup_relationship(type:, **options)
+          id = options[:id]
+          lid = options[:'local:id']
+
+          included&.find do |x|
+            x[:type].eql?(type) &&
+              if id
+                x[:id].eql?(id)
+              elsif lid
+                x[:'local:id'].eql?(lid)
+              end
+          end
+        end
       end
     end
   end

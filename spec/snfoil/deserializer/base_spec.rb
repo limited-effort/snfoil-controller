@@ -46,16 +46,16 @@ RSpec.describe SnFoil::Deserializer::Base do
   end
 
   describe '#initialize' do
-    let(:input) { deserializer.new(request).input }
+    let(:data) { deserializer.new(request).data }
 
     context 'with no key_transform set' do
       it 'defaults to :underscore' do
-        expect(input[:data][:attributes][:two_word]).to eq 'keys'
+        expect(data[:data][:attributes][:two_word]).to eq 'keys'
       end
 
       it 'always to_syms the final product' do
-        expect(input.keys).to include :data
-        expect(input.keys).not_to include 'data'
+        expect(data.keys).to include :data
+        expect(data.keys).not_to include 'data'
       end
     end
 
@@ -65,8 +65,8 @@ RSpec.describe SnFoil::Deserializer::Base do
       end
 
       it 'always to_syms the final product' do
-        expect(input.keys).to include :DATA
-        expect(input.keys).not_to include :data
+        expect(data.keys).to include :DATA
+        expect(data.keys).not_to include :data
       end
     end
 
@@ -76,13 +76,13 @@ RSpec.describe SnFoil::Deserializer::Base do
       end
 
       it 'uses the transform' do
-        expect(input.keys).to include :attr_DATA
-        expect(input.keys).not_to include :data
+        expect(data.keys).to include :attr_DATA
+        expect(data.keys).not_to include :data
       end
 
       it 'always to_syms the final product' do
-        expect(input.keys).to include :attr_DATA
-        expect(input.keys).not_to include 'attr_DATA'
+        expect(data.keys).to include :attr_DATA
+        expect(data.keys).not_to include 'attr_DATA'
       end
     end
   end

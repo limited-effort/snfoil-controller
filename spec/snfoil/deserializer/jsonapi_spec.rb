@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'snfoil/deserializer/jsonapi'
 
 RSpec.describe SnFoil::Deserializer::JSONAPI do
   subject(:deserializer) { TestJsonapiDeserializer }
@@ -13,7 +14,7 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
     let(:parsed_value) { TestJsonapiDeserializer.new(request).parse }
 
     it 'sets the id of the object' do
-      expect(parsed_value[:lid]).to eq('b9037e4a-ba86-4e0d-960c-c793baeee678')
+      expect(parsed_value[:'local:id']).to eq('b9037e4a-ba86-4e0d-960c-c793baeee678')
     end
 
     it 'includes :attributes values' do
@@ -24,9 +25,13 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
       expect(parsed_value[:transformed]).to eq('z-o-r-p')
     end
 
+    it 'properly finds prefixed values' do
+      expect(parsed_value[:interesting]).to eq 'tetris'
+    end
+
     context 'when there is are has_one relationships' do
       it 'uses the supplied key in the relationship options' do
-        expect(parsed_value[:author][:lid]).to eq('a4217889-4997-456c-99ce-cda87a1b5448')
+        expect(parsed_value[:author][:'local:id']).to eq('a4217889-4997-456c-99ce-cda87a1b5448')
       end
 
       it 'parses the attributes when the relationship is available in the includes' do
@@ -34,13 +39,13 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
       end
 
       it 'parses the id when the relationship is not available in the includes' do
-        expect(parsed_value[:owner][:id]).to eq('1')
+        expect(parsed_value[:owner][:id]).to eq('42')
       end
     end
 
     context 'when there is a has_many relationships' do
       it 'uses the supplied key in the relationship options' do
-        expect(parsed_value[:envs].count).to eq(2)
+        expect(parsed_value[:environments].count).to eq(2)
       end
 
       it 'parses the attributes when the relationship is available in the includes' do
@@ -48,7 +53,7 @@ RSpec.describe SnFoil::Deserializer::JSONAPI do
       end
 
       it 'parses the id when the relationship is not available in the includes' do
-        expect(parsed_value[:envs][0][:id]).to eq('1')
+        expect(parsed_value[:environments][0][:id]).to eq('1')
       end
     end
   end
@@ -67,10 +72,13 @@ class TestJsonapiDeserializer
   attributes :name
 
   attribute :other
-  attribute(:odd, key: :transformed)
+  attribute :interesting, prefix: :prefixed_
+  attribute :transformed, key: :odd
 
-  has_one(:target, key: :author, deserializer: MiscJsonapiDeserializer)
+  belongs_to(:missing, deserializer: MiscJsonapiDeserializer)
+  has_one(:author, key: :target, deserializer: MiscJsonapiDeserializer)
   has_one(:owner, deserializer: MiscJsonapiDeserializer)
-  has_many(:environments, key: :envs, deserializer: MiscJsonapiDeserializer)
+  has_many(:environments, deserializer: MiscJsonapiDeserializer)
+  has_many(:more_missing, deserializer: MiscJsonapiDeserializer)
   has_many(:versions, deserializer: MiscJsonapiDeserializer)
 end

@@ -7,7 +7,7 @@
   "odd": "z-o-r-p",
   "two-word": "keys",
   "prefixed-interesting": "tetris",
-  "environments": [
+  "envs": [
     {"id": "1"},
     {"id": "2"}
   ],
@@ -18,7 +18,7 @@
     }
   ],
   "owner": {
-    "id": "1"
+    "id": "42"
   },
   "target": {
     "local:id": "a4217889-4997-456c-99ce-cda87a1b5448",

@@ -43,11 +43,11 @@ module SnFoil
       end
 
       included do
-        attr_reader :input, :options
+        attr_reader :data, :config
 
-        def initialize(input, **options)
-          @input = key_transform(input)
-          @options = options
+        def initialize(input, **config)
+          @data = normalize_keys(input)
+          @config = config
         end
 
         def parse
@@ -62,30 +62,30 @@ module SnFoil
         alias_method :to_h, :parse
       end
 
-      private
+      protected
 
-      def key_transform(hash)
-        hash = hash.transform_keys do |key|
-          process_key_transform(key)
+      def normalize_keys(input)
+        input = input.transform_keys do |key|
+          apply_key_normalize(key)
         end
 
-        hash.transform_values do |value|
-          value_transform(value)
+        input.transform_values do |value|
+          check_deep_keys(value)
         end
       end
 
-      def value_transform(value)
+      def check_deep_keys(value)
         case value
         when Hash
-          key_transform(value)
+          normalize_keys(value)
         when Array
-          value.map { |v| value_transform(v) }
+          value.map { |v| check_deep_keys(v) }
         else
           value
         end
       end
 
-      def process_key_transform(key)
+      def apply_key_normalize(key)
         @snfoil_key_transform ||= self.class.snfoil_key_transform ||
                                   :underscore
         case @snfoil_key_transform
