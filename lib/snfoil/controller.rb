@@ -18,6 +18,22 @@ require 'active_support/concern'
 require 'snfoil/context'
 
 module SnFoil
+  # ActiveSupport::Concern for Controller functionality
+  # A SnFoil::Controller is essentially a context but instead of using #action uses a more simplified workflow
+  # called #endpoint.  The method or block passed to endpoint is ultimately what renders.
+  # #endpoint creates the following intervals:
+  # * setup_*
+  # * process_*
+  #
+  # This concern also adds the following class methods
+  # * context - The context associated with the controller to process the business logic
+  # * deserializer - the deserializer associated with the controller to allow list incoming params
+  # * endpoint - helper function to build endpoint methods
+  # * serializer - The serializer associated to render the context's output
+  #
+  # @author Matthew Howes
+  #
+  # @since 0.1.0
   module Controller
     extend ActiveSupport::Concern
 
