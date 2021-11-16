@@ -276,7 +276,7 @@ RSpec.describe SnFoil::Controller do
     end
 
     it 'uses the base serializer' do
-      including_class.new.serialize(OpenStruct.new)
+      including_class.new.serialize({})
 
       expect(serializer).to have_received(:new).once
       expect(serializer_instance).to have_received(:to_hash).once
@@ -292,7 +292,7 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the serializer in the options' do
-        including_class.new.serialize(OpenStruct.new, serializer: other_serializer)
+        including_class.new.serialize({}, serializer: other_serializer)
 
         expect(serializer_instance).not_to have_received(:to_hash)
         expect(other_serializer_instance).to have_received(:to_hash).once
@@ -308,13 +308,13 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
-        including_class.new.serialize(OpenStruct.new, serialize: serialize_block, canary: canary)
+        including_class.new.serialize({}, serialize: serialize_block, canary: canary)
 
         expect(canary.song.first[:data]).to eq serializer
       end
 
       it 'returns the block return' do
-        ret = including_class.new.serialize(OpenStruct.new, serialize: serialize_block, canary: canary)
+        ret = including_class.new.serialize({}, serialize: serialize_block, canary: canary)
 
         expect(ret).to eq 'options block'
       end
@@ -329,13 +329,13 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
-        including_class.new.serialize(OpenStruct.new, serialize_with: :serialize_method, canary: canary)
+        including_class.new.serialize({}, serialize_with: :serialize_method, canary: canary)
 
         expect(canary.song.first[:data]).to eq serializer
       end
 
       it 'returns the block return' do
-        ret = including_class.new.serialize(OpenStruct.new, serialize_with: :serialize_method, canary: canary)
+        ret = including_class.new.serialize({}, serialize_with: :serialize_method, canary: canary)
 
         expect(ret).to eq 'options method'
       end
@@ -354,13 +354,13 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
-        including_class.new.serialize(OpenStruct.new, canary: canary)
+        including_class.new.serialize({}, canary: canary)
 
         expect(canary.song.first[:data]).to eq serializer
       end
 
       it 'returns the block return' do
-        ret = including_class.new.serialize(OpenStruct.new, canary: canary)
+        ret = including_class.new.serialize({}, canary: canary)
 
         expect(ret).to eq 'class block'
       end
@@ -378,7 +378,7 @@ RSpec.describe SnFoil::Controller do
     end
 
     it 'uses the base deserializer' do
-      including_class.new.deserialize(OpenStruct.new)
+      including_class.new.deserialize({})
 
       expect(deserializer).to have_received(:new).once
       expect(deserializer_instance).to have_received(:to_hash).once
@@ -394,7 +394,7 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the deserializer in the options' do
-        including_class.new.deserialize(OpenStruct.new, deserializer: other_deserializer)
+        including_class.new.deserialize({}, deserializer: other_deserializer)
 
         expect(deserializer_instance).not_to have_received(:to_hash)
         expect(other_deserializer_instance).to have_received(:to_hash).once
@@ -410,13 +410,13 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
-        including_class.new.deserialize(OpenStruct.new, deserialize: deserialize_block, canary: canary)
+        including_class.new.deserialize({}, deserialize: deserialize_block, canary: canary)
 
         expect(canary.song.first[:data]).to eq deserializer
       end
 
       it 'returns the block return' do
-        ret = including_class.new.deserialize(OpenStruct.new, deserialize: deserialize_block, canary: canary)
+        ret = including_class.new.deserialize({}, deserialize: deserialize_block, canary: canary)
 
         expect(ret).to eq 'options block'
       end
@@ -431,13 +431,13 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
-        including_class.new.deserialize(OpenStruct.new, deserialize_with: :deserialize_method, canary: canary)
+        including_class.new.deserialize({}, deserialize_with: :deserialize_method, canary: canary)
 
         expect(canary.song.first[:data]).to eq deserializer
       end
 
       it 'returns the block return' do
-        ret = including_class.new.deserialize(OpenStruct.new, deserialize_with: :deserialize_method, canary: canary)
+        ret = including_class.new.deserialize({}, deserialize_with: :deserialize_method, canary: canary)
 
         expect(ret).to eq 'options method'
       end
@@ -456,13 +456,13 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
-        including_class.new.deserialize(OpenStruct.new, canary: canary)
+        including_class.new.deserialize({}, canary: canary)
 
         expect(canary.song.first[:data]).to eq deserializer
       end
 
       it 'returns the block return' do
-        ret = including_class.new.deserialize(OpenStruct.new, canary: canary)
+        ret = including_class.new.deserialize({}, canary: canary)
 
         expect(ret).to eq 'class block'
       end
