@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'ostruct'
 
 RSpec.describe SnFoil::Controller do
   subject(:including_class) { Class.new ControllerSpecClass }
@@ -24,6 +25,15 @@ RSpec.describe SnFoil::Controller do
 
     it 'sets snfoil_serializer' do
       expect(including_class.snfoil_serializer).to eq serializer
+    end
+
+    context 'when called with a block' do
+      let(:serializer_block) { proc {} }
+
+      it 'sets snfoil_serializer' do
+        including_class.serializer(serializer, &serializer_block)
+        expect(including_class.snfoil_serializer_block).to eq serializer_block
+      end
     end
   end
 
@@ -251,6 +261,258 @@ RSpec.describe SnFoil::Controller do
         it 'returns the params without alteration' do
           expect(including_class.new.deserialize(params)).to eq params
         end
+      end
+    end
+  end
+
+  describe '#serialize' do
+    let(:serializer) { double }
+    let(:serializer_instance) { double }
+
+    before do
+      including_class.serializer(serializer)
+      allow(serializer).to receive(:new).and_return(serializer_instance)
+      allow(serializer_instance).to receive(:to_hash)
+    end
+
+    it 'uses the base serializer' do
+      including_class.new.serialize(OpenStruct.new)
+
+      expect(serializer).to have_received(:new).once
+      expect(serializer_instance).to have_received(:to_hash).once
+    end
+
+    context 'when options[:serializer] => value' do
+      let(:other_serializer) { double }
+      let(:other_serializer_instance) { double }
+
+      before do
+        allow(other_serializer).to receive(:new).and_return(other_serializer_instance)
+        allow(other_serializer_instance).to receive(:to_hash)
+      end
+
+      it 'uses the serializer in the options' do
+        including_class.new.serialize(OpenStruct.new, serializer: other_serializer)
+
+        expect(serializer_instance).not_to have_received(:to_hash)
+        expect(other_serializer_instance).to have_received(:to_hash).once
+      end
+    end
+
+    context 'when options[:serialize] => value' do
+      let(:serialize_block) do
+        proc do |_object, serializer, **options|
+          options[:canary].sing(serializer)
+          'options block'
+        end
+      end
+
+      it 'uses the block provided' do
+        including_class.new.serialize(OpenStruct.new, serialize: serialize_block, canary: canary)
+
+        expect(canary.song.first[:data]).to eq serializer
+      end
+
+      it 'returns the block return' do
+        ret = including_class.new.serialize(OpenStruct.new, serialize: serialize_block, canary: canary)
+
+        expect(ret).to eq 'options block'
+      end
+    end
+
+    context 'when options[:serialize_with] => value' do
+      before do
+        including_class.define_method(:serialize_method) do |_object, serializer, **options|
+          options[:canary].sing(serializer)
+          'options method'
+        end
+      end
+
+      it 'uses the block provided' do
+        including_class.new.serialize(OpenStruct.new, serialize_with: :serialize_method, canary: canary)
+
+        expect(canary.song.first[:data]).to eq serializer
+      end
+
+      it 'returns the block return' do
+        ret = including_class.new.serialize(OpenStruct.new, serialize_with: :serialize_method, canary: canary)
+
+        expect(ret).to eq 'options method'
+      end
+    end
+
+    context 'when self.snfoil_serializer_block is defined' do
+      let(:serializer_block) do
+        proc do |_object, serializer, **options|
+          options[:canary].sing(serializer)
+          'class block'
+        end
+      end
+
+      before do
+        including_class.serializer(serializer, &serializer_block)
+      end
+
+      it 'uses the block provided' do
+        including_class.new.serialize(OpenStruct.new, canary: canary)
+
+        expect(canary.song.first[:data]).to eq serializer
+      end
+
+      it 'returns the block return' do
+        ret = including_class.new.serialize(OpenStruct.new, canary: canary)
+
+        expect(ret).to eq 'class block'
+      end
+    end
+  end
+
+  describe '#deserialize' do
+    let(:deserializer) { double }
+    let(:deserializer_instance) { double }
+
+    before do
+      including_class.deserializer(deserializer)
+      allow(deserializer).to receive(:new).and_return(deserializer_instance)
+      allow(deserializer_instance).to receive(:to_hash)
+    end
+
+    it 'uses the base deserializer' do
+      including_class.new.deserialize(OpenStruct.new)
+
+      expect(deserializer).to have_received(:new).once
+      expect(deserializer_instance).to have_received(:to_hash).once
+    end
+
+    context 'when options[:deserializer] => value' do
+      let(:other_deserializer) { double }
+      let(:other_deserializer_instance) { double }
+
+      before do
+        allow(other_deserializer).to receive(:new).and_return(other_deserializer_instance)
+        allow(other_deserializer_instance).to receive(:to_hash)
+      end
+
+      it 'uses the deserializer in the options' do
+        including_class.new.deserialize(OpenStruct.new, deserializer: other_deserializer)
+
+        expect(deserializer_instance).not_to have_received(:to_hash)
+        expect(other_deserializer_instance).to have_received(:to_hash).once
+      end
+    end
+
+    context 'when options[:deserialize] => value' do
+      let(:deserialize_block) do
+        proc do |_object, deserializer, **options|
+          options[:canary].sing(deserializer)
+          'options block'
+        end
+      end
+
+      it 'uses the block provided' do
+        including_class.new.deserialize(OpenStruct.new, deserialize: deserialize_block, canary: canary)
+
+        expect(canary.song.first[:data]).to eq deserializer
+      end
+
+      it 'returns the block return' do
+        ret = including_class.new.deserialize(OpenStruct.new, deserialize: deserialize_block, canary: canary)
+
+        expect(ret).to eq 'options block'
+      end
+    end
+
+    context 'when options[:deserialize_with] => value' do
+      before do
+        including_class.define_method(:deserialize_method) do |_object, deserializer, **options|
+          options[:canary].sing(deserializer)
+          'options method'
+        end
+      end
+
+      it 'uses the block provided' do
+        including_class.new.deserialize(OpenStruct.new, deserialize_with: :deserialize_method, canary: canary)
+
+        expect(canary.song.first[:data]).to eq deserializer
+      end
+
+      it 'returns the block return' do
+        ret = including_class.new.deserialize(OpenStruct.new, deserialize_with: :deserialize_method, canary: canary)
+
+        expect(ret).to eq 'options method'
+      end
+    end
+
+    context 'when self.snfoil_deserializer_block is defined' do
+      let(:deserializer_block) do
+        proc do |_object, deserializer, **options|
+          options[:canary].sing(deserializer)
+          'class block'
+        end
+      end
+
+      before do
+        including_class.deserializer(deserializer, &deserializer_block)
+      end
+
+      it 'uses the block provided' do
+        including_class.new.deserialize(OpenStruct.new, canary: canary)
+
+        expect(canary.song.first[:data]).to eq deserializer
+      end
+
+      it 'returns the block return' do
+        ret = including_class.new.deserialize(OpenStruct.new, canary: canary)
+
+        expect(ret).to eq 'class block'
+      end
+    end
+  end
+
+  describe '#run_context' do
+    let(:context) { double }
+    let(:context_instance) { double }
+
+    before do
+      including_class.context(context)
+      allow(context).to receive(:new).and_return(context_instance)
+      allow(context_instance).to receive(:controller_action)
+    end
+
+    it 'calls the context using the controller action' do
+      including_class.new.run_context(controller_action: :controller_action)
+
+      expect(context).to have_received(:new).once
+      expect(context_instance).to have_received(:controller_action).once
+    end
+
+    context 'with options[:context] => value' do
+      let(:other_context) { double }
+      let(:other_context_instance) { double }
+
+      before do
+        allow(other_context).to receive(:new).and_return(other_context_instance)
+        allow(other_context_instance).to receive(:controller_action)
+      end
+
+      it 'calls that options context' do
+        including_class.new.run_context(context: other_context, controller_action: :controller_action)
+
+        expect(context_instance).not_to have_received(:controller_action)
+        expect(other_context_instance).to have_received(:controller_action).once
+      end
+    end
+
+    context 'with options[:context_action] => value' do
+      before do
+        allow(context_instance).to receive(:context_action)
+      end
+
+      it 'sends the options context_action' do
+        including_class.new.run_context(context_action: :context_action, controller_action: :controller_action)
+
+        expect(context_instance).not_to have_received(:controller_action)
+        expect(context_instance).to have_received(:context_action).once
       end
     end
   end

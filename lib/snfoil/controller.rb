@@ -95,6 +95,10 @@ module SnFoil
       exec_deserialize(deserializer, params, **options)
     end
 
+    def run_context(context: nil, context_action: nil, controller_action: nil, **_options)
+      (context || self.class.snfoil_context).new(entity).send(context_action || controller_action)
+    end
+
     protected
 
     class_methods do

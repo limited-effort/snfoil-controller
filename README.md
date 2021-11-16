@@ -1,6 +1,8 @@
 # SnFoil::Controller
 
-![build](https://github.com/limited-effort/snfoil-controller/actions/workflows/main.yml/badge.svg) [![maintainability](https://api.codeclimate.com/v1/badges/6a7a2f643707c17cb879/maintainability)](https://codeclimate.com/github/limited-effort/snfoil-controller/maintainability)
+![build](https://github.com/limited-effort/snfoil-controller/actions/workflows/main.yml/badge.svg) [![maintainability](https://api.codeclimate.com/v1/badges/10885d7b7231f3e9b0b7/maintainability)](https://codeclimate.com/github/limited-effort/snfoil-controller/maintainability)
+
+SnFoil Controllers help seperate your business logic from your api layer.  
 
 ## Installation
 
@@ -11,10 +13,57 @@ gem 'snfoil-controller'
 ```
 
 ## Usage
-While contexts are powerful, they aren't a magic bullet.  Each function should strive to only contain a single purpose.  This also has the added benefit of outlining some basic tests - if it is in a function it should have a related test.
-
+Ultimately SnFoil Controllers are just SnFoil Contexts, but they setup their workflow a little differently.  `endpoint` creates `setup_*` and `process_*` intervals to handle your data, and the method or block provided renders it.
 
 ### Quickstart Example
+
+```ruby
+# app/controllers/people_controller.rb
+
+class PeopleController < ActionController::API
+  include SnFoil::Controller
+
+  context PeopleContext
+  serializer PeopleSerializer
+  context PeopleDeserializer
+
+  endpoint :create, do |object:, **options|
+    if object.errors
+      render json: object.errors, status: :unprocessable_entity
+    else
+      render json: serialize(object, **options), status: :created
+    end
+  end
+
+  endpoint :update, do |object:, **options|
+    if object.errors
+      render json: object.errors, status: :unprocessable_entity
+    else
+      render json: serialize(object, **options), status: :ok
+    end
+  end
+
+  endpoint :show, do |object:, **options|
+    render json: serialize(object, **options), status: :created
+  end
+
+  endpoint :delete, do |object:, **options|
+    if object.errors
+      render json: object.errors, status: :unprocessable_entity
+    else
+      render json: {}, status: :no_content
+    end
+  end
+
+  setup_create { |**options| options[:params] = deserialize(params, **options) }
+  setup_update { |**options| options[:params] = deserialize(params, **options) }
+
+  process_create { |**options| run_context(**options) }
+  process_update { |**options| run_context(**options) }
+  process_show { |**options| run_context(**options) }
+  process_delete { |**options| run_context(**options) }
+end
+```
 
 ## Development
 
