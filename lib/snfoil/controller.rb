@@ -37,6 +37,8 @@ module SnFoil
   module Controller
     extend ActiveSupport::Concern
 
+    class Error < RuntimeError; end
+
     included do
       include SnFoil::Context
 
@@ -57,15 +59,21 @@ module SnFoil
                   :snfoil_deserializer, :snfoil_deserializer_block
 
       def context(klass = nil)
+        raise SnFoil::Controller::Error, "context already defined for #{self}" if @snfoil_context
+
         @snfoil_context = klass
       end
 
       def serializer(klass = nil, &block)
+        raise SnFoil::Controller::Error, "serializer already defined for #{self}" if @snfoil_serializer || @snfoil_serializer_block
+
         @snfoil_serializer = klass
         @snfoil_serializer_block = block
       end
 
       def deserializer(klass = nil, &block)
+        raise SnFoil::Controller::Error, "deserializer already defined for #{self}" if @snfoil_deserializer || @snfoil_deserializer_block
+
         @snfoil_deserializer = klass
         @snfoil_deserializer_block = block
       end

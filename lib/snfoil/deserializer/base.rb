@@ -42,21 +42,21 @@ module SnFoil
           @snfoil_key_transform = transform || block
         end
 
-        def attributes(*fields, **options)
-          fields.each { |field| attribute(field, **options) }
+        def attribute(key, **options, &block)
+          (@snfoil_attribute_transforms ||= {})[key] = options.merge(transform_type: :attribute, block: block)
         end
 
-        def attribute(key, **options)
-          (@snfoil_attribute_transforms ||= {})[key] = options.merge(transform_type: :attribute)
+        def attributes(*fields, **options, &block)
+          fields.each { |field| attribute(field, **options, &block) }
         end
 
-        def belongs_to(key, deserializer:, **options)
-          (@snfoil_attribute_transforms ||= {})[key] = options.merge(deserializer: deserializer, transform_type: :has_one)
+        def belongs_to(key, deserializer:, **options, &block)
+          (@snfoil_attribute_transforms ||= {})[key] = options.merge(deserializer: deserializer, transform_type: :has_one, block: block)
         end
         alias_method :has_one, :belongs_to
 
-        def has_many(key, deserializer:, **options) # rubocop:disable Naming/PredicateName
-          (@snfoil_attribute_transforms ||= {})[key] = options.merge(deserializer: deserializer, transform_type: :has_many)
+        def has_many(key, deserializer:, **options, &block) # rubocop:disable Naming/PredicateName
+          (@snfoil_attribute_transforms ||= {})[key] = options.merge(deserializer: deserializer, transform_type: :has_many, block: block)
         end
 
         def inherited(subclass)

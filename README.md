@@ -65,6 +65,358 @@ class PeopleController < ActionController::API
 end
 ```
 
+### Controller
+
+A controller is a combination of a Context, Serializer, Deserializer, and a some Endpoints.  See the Quickstart exaple above and the description of functions below for more details.
+
+##### Ussing SSR
+
+You don't need a serializer.  You can just use a standard render in the endpoint's function. 
+
+```ruby
+# taken from https://guides.rubyonrails.org/layouts_and_rendering.html
+
+class BooksController < ApplicationController
+  def index
+    @books = Book.all
+  end
+end
+
+# becomes
+
+class BooksController < ApplicationController
+  include SnFoil::Controller
+
+  endpoint(:index) { |**options| @books = Book.all }
+end
+
+```
+
+#### Endpoint
+
+Endpoint creates a workflow with two intervals and a primary function for rendering.
+
+
+```ruby
+class PeopleController < ActionController::API
+  include SnFoil::Controller
+
+  endpoint(:create) { |**options| render json: options[:object] }
+end
+```
+
+In this exmaple the `setup_create` and `process_create` intervals are defined for you and the method finally returns the block.  If you don't want to provide a block you can instead pass in a method name
+
+```ruby
+class PeopleController < ActionController::API
+  include SnFoil::Controller
+
+  endpoint(:create, with: :render_create)
+  
+  def render_create(**options)
+    render json: options[:object]
+  end
+end
+```
+
+Any options passed in as arguements to endpoint will be passed to the intervals and flow through just like a Context (becuase it is a Context under the hood).
+
+```ruby
+class PeopleController < ActionController::API
+  include SnFoil::Controller
+
+  endpoint(:create, with: :render_create, interesting: 'key you have there')
+
+  setup_create do |**options|
+    puts options[:interesting] # => 'key you have there'
+    ...
+  end
+end
+```
+##### Arguments
+
+<table>
+  <thead>
+    <th>name</th>
+    <th>type</th>
+    <th>description</th>
+    <th>required</th>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>name</td>
+      <td>string|symbol</td>
+      <td>The name of the method to be defined on the controller and the intervals</td>
+      <td>true</td>
+    </tr>
+    <tr>
+      <td>options</td>
+      <td>keyword arguments</td>
+      <td>The options you want passed down the chain of intervals and to the context</td>
+      <td>false</td>
+    </tr>
+    <tr>
+      <td>block</td>
+      <td>proc</td>
+      <td>The function you want to render your controller action</td>
+      <td>conditionally based on if you don't provide a `:with` in the only</td>
+    </tr>
+  </tbody>
+</table>
+
+There are a few reserved keyword arguements that cause different functionlity/configuration for options:
+
+* `with` - The method name to use if a block is not provided to the endpoint
+* `context` - The context to use for this endpoint.  Overrides the one configured using #self.context
+* `context_action` - The method name to call on the context.  Defaults to the endpoint name.
+* `serializer` - The serializer to use for this endpoint. Overrides the one configured using #self.serializer
+* `serialize` - The block used to process the serializer. Overrides the one configured using #self.serializer
+* `serialize_with` - The method used to process the serializer. Overrides the one configured using #self.serializer
+* `deserializer` - The deserializer to use for this endpoint. Overrides the one configured using #self.deserializer
+* `deserialize` - The block used to process the deserializer. Overrides the one configured using #self.deserializer
+* `deserialize_with` - The method used to process the deserializer. Overrides the one configured using #self.deserializer
+
+#### Context
+
+The main context intended to be called by the Controller.
+
+```ruby
+class PeopleController < ActionController::API
+  include SnFoil::Controller
+
+  context PeopleContext
+end
+```
+##### Arguments
+
+<table>
+  <thead>
+    <th>name</th>
+    <th>type</th>
+    <th>description</th>
+    <th>required</th>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>name</td>
+      <td>class</td>
+      <td>The context class for the controller</td>
+      <td>true</td>
+    </tr>
+  </tbody>
+</table>
+
+#### Serializer
+
+The main serializer intended to be called by the Controller.  Also the default serializer and block used by the '#serialize` method.
+
+```ruby
+class PeopleController < ActionController::API
+  include SnFoil::Controller
+
+  serializer PeopleSerializer
+end
+```
+##### Arguments
+
+<table>
+  <thead>
+    <th>name</th>
+    <th>type</th>
+    <th>description</th>
+    <th>required</th>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>name</td>
+      <td>class</td>
+      <td>The serializer class for the controller</td>
+      <td>false</td>
+    </tr>
+    <tr>
+      <td>block</td>
+      <td>proc</td>
+      <td>The block to be called to serialize the data</td>
+      <td>false</td>
+    </tr>
+  </tbody>
+</table>
+
+##### Default Call
+
+If no block or method is provided, `#serialize` will try to new up the Serializer class with arguments `object` and `options` and call `#to_hash`.
+
+```ruby
+Serializer.new(object, **options).to_hash
+```
+
+##### Passing in a Block
+
+If you provide a block to the `#self.serializer` method you can define how you want the serializer to be called.
+
+```ruby
+class PeopleController < ActionController::API
+  include SnFoil::Controller
+
+  serializer(PeopleSerializer) { |object, serializer, **_options| serializer.new(object).serialize }
+end
+```
+
+#### Deserializer
+
+The main deserializer intended to be called by the Controller.  Also the default deserializer and block used by the '#deserialize` method.
+
+```ruby
+class PeopleController < ActionController::API
+  include SnFoil::Controller
+
+  deserializer PeopleDeserializer
+end
+```
+##### Arguments
+
+<table>
+  <thead>
+    <th>name</th>
+    <th>type</th>
+    <th>description</th>
+    <th>required</th>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>name</td>
+      <td>class</td>
+      <td>The deserializer class for the controller</td>
+      <td>false</td>
+    </tr>
+    <tr>
+      <td>block</td>
+      <td>proc</td>
+      <td>The block to be called to deserialize the data</td>
+      <td>false</td>
+    </tr>
+  </tbody>
+</table>
+
+##### Default Call
+
+If no block or method is provided, `#deserialize` will try to new up the Deserializer class with arguments `object` and `options` and call `#to_hash`.
+
+```ruby
+Deserializer.new(object, **options).to_hash
+```
+
+##### Passing in a Block
+
+If you provide a block to the `#self.deserializer` method you can define how you want the deserializer to be called.
+
+```ruby
+class PeopleController < ActionController::API
+  include SnFoil::Controller
+
+  deserializer(PeopleDeserializer) { |object, deserializer, **_options| deserializer.new(object).deserialize }
+end
+```
+
+### Serializers and Deserializers
+
+Since Serializers seem so abundant SnFoil Controllers does not ship with any.  We recommend the awesome [jsonapi-serializer](https://github.com/jsonapi-serializer/jsonapi-serializer).
+
+Deserializers haven't come so far - so we've setup two:
+
+* SnFoil::Deserializer::JSON
+* SnFoil::Deserializer::JSONAPI
+
+These allow you to allow-list and format any incoming data into a standard more usable by your business logic.
+
+##### Usage
+
+```ruby
+class PeopleDeserializer
+  include SnFoil::Deserializer::JSON
+
+  key_transform :underscore
+
+  attributes :first_name, :middle_name, :last_name
+  attributes :line1, :line2, :city, :state, :zip, prefix: :address_
+
+  has_many :books, deserializer: BookDeserializer
+end
+```
+
+Both these deserializers share some common functions
+
+##### key_transform
+
+How you want to format the keys in the incoming payload.  SnFoil::Deserializers will always `:to_sym` all of the keys and will by default `:underscore` them.  You can pass in most active_support inflections or you can run some custom logic on them.
+
+###### Arguments
+
+<table>
+  <thead>
+    <th>name</th>
+    <th>type</th>
+    <th>description</th>
+    <th>required</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>tranform</td>
+      <td>symbol</td>
+      <td>The inflection you want called on the key value. ex: `underscore`, `camelcase`</td>
+      <td>false</td>
+    </tr>
+    <tr>
+      <td>block</td>
+      <td>proc</td>
+      <td>A custom proc passed the value of the key.  The return is what the new key will be named</td>
+      <td>false</td>
+    </tr>
+  </tbody>
+</table>
+
+##### attribute
+
+An attribute to be taken from the input payload.
+
+###### Arguments
+
+<table>
+  <thead>
+    <th>name</th>
+    <th>type</th>
+    <th>description</th>
+    <th>required</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>name</td>
+      <td>symbol</td>
+      <td>The name of the key to be output in the final hash</td>
+      <td>true</td>
+    </tr>
+    <tr>
+      <td>options</td>
+      <td>keyword arguments</td>
+      <td>The options you want passed down the chain of intervals and to the context</td>
+      <td>false</td>
+    </tr>
+  </tbody>
+</table>
+
+There are a few reserved keyword arguements that cause different functionlity/configuration for options:
+
+* `key` the name of the key from the original input payload.  If not provided this defaults to the name of the attribute.
+* `prefix` a prefix for the key you are looking for.  ex `attribute(:line1, prefix: :addr_)` will look for a key labeled `:addr_line1`
+
+#### SnFoil::Deserializer::JSON
+
+#### SnFoil::Deserializer::JSONAPI
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

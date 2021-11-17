@@ -16,14 +16,22 @@ RSpec.describe SnFoil::Controller do
     it 'sets snfoil_context' do
       expect(including_class.snfoil_context).to eq context
     end
+
+    context 'when a context is already defined' do
+      it 'raises an error' do
+        expect do
+          including_class.context(context)
+        end.to raise_error SnFoil::Controller::Error
+      end
+    end
   end
 
   describe '#self.serializer' do
     let(:serializer) { double }
 
-    before { including_class.serializer(serializer) }
-
     it 'sets snfoil_serializer' do
+      including_class.serializer(serializer)
+
       expect(including_class.snfoil_serializer).to eq serializer
     end
 
@@ -32,6 +40,7 @@ RSpec.describe SnFoil::Controller do
 
       it 'sets snfoil_serializer' do
         including_class.serializer(serializer, &serializer_block)
+
         expect(including_class.snfoil_serializer_block).to eq serializer_block
       end
     end
@@ -270,12 +279,12 @@ RSpec.describe SnFoil::Controller do
     let(:serializer_instance) { double }
 
     before do
-      including_class.serializer(serializer)
       allow(serializer).to receive(:new).and_return(serializer_instance)
       allow(serializer_instance).to receive(:to_hash)
     end
 
     it 'uses the base serializer' do
+      including_class.serializer(serializer)
       including_class.new.serialize({})
 
       expect(serializer).to have_received(:new).once
@@ -292,6 +301,7 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the serializer in the options' do
+        including_class.serializer(serializer)
         including_class.new.serialize({}, serializer: other_serializer)
 
         expect(serializer_instance).not_to have_received(:to_hash)
@@ -308,12 +318,14 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
+        including_class.serializer(serializer)
         including_class.new.serialize({}, serialize: serialize_block, canary: canary)
 
         expect(canary.song.first[:data]).to eq serializer
       end
 
       it 'returns the block return' do
+        including_class.serializer(serializer)
         ret = including_class.new.serialize({}, serialize: serialize_block, canary: canary)
 
         expect(ret).to eq 'options block'
@@ -329,12 +341,14 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
+        including_class.serializer(serializer)
         including_class.new.serialize({}, serialize_with: :serialize_method, canary: canary)
 
         expect(canary.song.first[:data]).to eq serializer
       end
 
       it 'returns the block return' do
+        including_class.serializer(serializer)
         ret = including_class.new.serialize({}, serialize_with: :serialize_method, canary: canary)
 
         expect(ret).to eq 'options method'
@@ -349,17 +363,15 @@ RSpec.describe SnFoil::Controller do
         end
       end
 
-      before do
-        including_class.serializer(serializer, &serializer_block)
-      end
-
       it 'uses the block provided' do
+        including_class.serializer(serializer, &serializer_block)
         including_class.new.serialize({}, canary: canary)
 
         expect(canary.song.first[:data]).to eq serializer
       end
 
       it 'returns the block return' do
+        including_class.serializer(serializer, &serializer_block)
         ret = including_class.new.serialize({}, canary: canary)
 
         expect(ret).to eq 'class block'
@@ -372,12 +384,12 @@ RSpec.describe SnFoil::Controller do
     let(:deserializer_instance) { double }
 
     before do
-      including_class.deserializer(deserializer)
       allow(deserializer).to receive(:new).and_return(deserializer_instance)
       allow(deserializer_instance).to receive(:to_hash)
     end
 
     it 'uses the base deserializer' do
+      including_class.deserializer(deserializer)
       including_class.new.deserialize({})
 
       expect(deserializer).to have_received(:new).once
@@ -394,6 +406,7 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the deserializer in the options' do
+        including_class.deserializer(deserializer)
         including_class.new.deserialize({}, deserializer: other_deserializer)
 
         expect(deserializer_instance).not_to have_received(:to_hash)
@@ -410,12 +423,14 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
+        including_class.deserializer(deserializer)
         including_class.new.deserialize({}, deserialize: deserialize_block, canary: canary)
 
         expect(canary.song.first[:data]).to eq deserializer
       end
 
       it 'returns the block return' do
+        including_class.deserializer(deserializer)
         ret = including_class.new.deserialize({}, deserialize: deserialize_block, canary: canary)
 
         expect(ret).to eq 'options block'
@@ -431,12 +446,14 @@ RSpec.describe SnFoil::Controller do
       end
 
       it 'uses the block provided' do
+        including_class.deserializer(deserializer)
         including_class.new.deserialize({}, deserialize_with: :deserialize_method, canary: canary)
 
         expect(canary.song.first[:data]).to eq deserializer
       end
 
       it 'returns the block return' do
+        including_class.deserializer(deserializer)
         ret = including_class.new.deserialize({}, deserialize_with: :deserialize_method, canary: canary)
 
         expect(ret).to eq 'options method'
@@ -451,17 +468,15 @@ RSpec.describe SnFoil::Controller do
         end
       end
 
-      before do
-        including_class.deserializer(deserializer, &deserializer_block)
-      end
-
       it 'uses the block provided' do
+        including_class.deserializer(deserializer, &deserializer_block)
         including_class.new.deserialize({}, canary: canary)
 
         expect(canary.song.first[:data]).to eq deserializer
       end
 
       it 'returns the block return' do
+        including_class.deserializer(deserializer, &deserializer_block)
         ret = including_class.new.deserialize({}, canary: canary)
 
         expect(ret).to eq 'class block'

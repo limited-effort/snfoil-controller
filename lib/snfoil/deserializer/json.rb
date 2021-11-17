@@ -78,13 +78,19 @@ module SnFoil
           output
         end
 
-        def find_attribute(input, key, **options)
+        def find_attribute(input, key, block: nil, with: nil, **options)
           return unless input
 
-          value_key = options.fetch(:key) { key }
-          value_key = "#{options[:prefix]}#{key}".to_sym if options[:prefix]
+          if block
+            instance_exec(input, key, **options, &block)
+          elsif with
+            send(with, input, key, **options)
+          else
+            value_key = options.fetch(:key) { key }
+            value_key = "#{options[:prefix]}#{key}".to_sym if options[:prefix]
 
-          input[value_key.to_sym]
+            input[value_key.to_sym]
+          end
         end
       end
     end
