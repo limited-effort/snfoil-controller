@@ -30,6 +30,14 @@ RSpec.describe SnFoil::Deserializer::JSON do
       expect(parsed_value[:lid]).to eq 'b9037e4a-ba86-4e0d-960c-c793baeee678'
     end
 
+    it 'uses blocks when present' do
+      expect(parsed_value[:blocky]).to eq 'other test form'
+    end
+
+    it 'uses methods when present' do
+      expect(parsed_value[:methody]).to eq 'method_keys'
+    end
+
     it 'finds has_many relationships' do
       expect(parsed_value[:environments].count).to eq 2
     end
@@ -68,10 +76,16 @@ class TestJsonDeserializer
 
   attribute :other
   attribute(:odd, key: :transformed)
+  attribute(:blocky) { |input, _key| "#{input[:other]} #{input[:name].downcase}" }
+  attribute(:methody, with: :method_check)
 
   belongs_to(:missing, deserializer: MiscJsonDeserializer)
   belongs_to(:author, key: :target, deserializer: MiscJsonDeserializer)
   has_one(:owner, deserializer: MiscJsonDeserializer)
   has_many(:environments, key: :envs, deserializer: MiscJsonDeserializer)
   has_many(:versions, deserializer: MiscJsonDeserializer)
+
+  def method_check(input, _, **_)
+    "method_#{input[:two_word]}"
+  end
 end

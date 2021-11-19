@@ -373,7 +373,7 @@ How you want to format the keys in the incoming payload.  SnFoil::Deserializers 
     <tr>
       <td>block</td>
       <td>proc</td>
-      <td>A custom proc passed the value of the key.  The return is what the new key will be named</td>
+      <td>A custom proc passed the input request and the key the return value will be stored under.</td>
       <td>false</td>
     </tr>
   </tbody>
@@ -382,6 +382,16 @@ How you want to format the keys in the incoming payload.  SnFoil::Deserializers 
 ##### attribute
 
 An attribute to be taken from the input payload.
+
+```ruby
+attribute :first_name 
+attribute :last_name
+attribute :line1, :prefix: :addr_
+attribute :line2, :prefix: :addr_
+attribute :city, :prefix: :addr_
+attribute :state, :prefix: :addr_
+attribute :zip_code, key: :addr_postal_code
+```
 
 ###### Arguments
 
@@ -405,17 +415,108 @@ An attribute to be taken from the input payload.
       <td>The options you want passed down the chain of intervals and to the context</td>
       <td>false</td>
     </tr>
+    <tr>
+      <td>block</td>
+      <td>proc</td>
+      <td></td>
+      <td>false</td>
+    </tr>
   </tbody>
 </table>
+
+If you are using a block or the `:with` argument it will be passed the input, the key, and any options for the deserializer.  The return of the block or method is what will be used as the value instead of looking up the key directly in the input.
+
+example:
+
+```ruby
+attribute(:test) { |request, key, **options| request[:data][key] }
+```
 
 There are a few reserved keyword arguements that cause different functionlity/configuration for options:
 
 * `key` the name of the key from the original input payload.  If not provided this defaults to the name of the attribute.
 * `prefix` a prefix for the key you are looking for.  ex `attribute(:line1, prefix: :addr_)` will look for a key labeled `:addr_line1`
+* `with` the method name you want to call to lookup/parse an attribute
 
-#### SnFoil::Deserializer::JSON
+##### attributes
 
-#### SnFoil::Deserializer::JSONAPI
+The same as attribute except you can pass in multiple keys.
+
+
+```ruby
+attributes :first_name, :last_name
+attributes :line1, :line2, :city, :state :prefix: :addr_
+```
+
+##### belongs_to
+
+A standard belongs_to relationship.  Instead of grabbing a single key from the payload, expects to grab a hash.
+
+```ruby
+belongs_to :team
+```
+
+###### Arguments
+
+<table>
+  <thead>
+    <th>name</th>
+    <th>type</th>
+    <th>description</th>
+    <th>required</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>tranform</td>
+      <td>symbol</td>
+      <td>The inflection you want called on the key value. ex: `underscore`, `camelcase`</td>
+      <td>false</td>
+    </tr>
+    <tr>
+      <td>block</td>
+      <td>proc</td>
+      <td>A custom proc passed the input request and the key the return value will be stored under.</td>
+      <td>false</td>
+    </tr>
+  </tbody>
+</table>
+
+##### has_one
+
+Just an alias for `#belongs_to`
+
+##### has_many
+
+A standard has_many relationship.  Instead of grabbing a single key from the payload, expects to grab an array.
+
+```ruby
+has_many :pets
+```
+
+###### Arguments
+
+<table>
+  <thead>
+    <th>name</th>
+    <th>type</th>
+    <th>description</th>
+    <th>required</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>tranform</td>
+      <td>symbol</td>
+      <td>The inflection you want called on the key value. ex: `underscore`, `camelcase`</td>
+      <td>false</td>
+    </tr>
+    <tr>
+      <td>block</td>
+      <td>proc</td>
+      <td>A custom proc passed the input request and the key the return value will be stored under.</td>
+      <td>false</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Development
 
