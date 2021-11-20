@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activesupport', '>= 5.2.6'
   spec.add_dependency 'jsonapi-serializer', '~> 2.2'
-  spec.add_dependency 'snfoil-context'
+  spec.add_dependency 'snfoil-context', '~> 0.10'
 
   spec.add_development_dependency 'bundle-audit', '~> 0.1.0'
   spec.add_development_dependency 'fasterer', '~> 0.9.0'
