@@ -494,6 +494,12 @@ RSpec.describe SnFoil::Controller do
       allow(context_instance).to receive(:controller_action)
     end
 
+    it 'initializes the context with the entity' do
+      including_class.define_method(:current_entity) { 'someentity' }
+      including_class.new.run_context(controller_action: :controller_action)
+      expect(context).to have_received(:new).with hash_including(entity: 'someentity')
+    end
+
     it 'calls the context using the controller action' do
       including_class.new.run_context(controller_action: :controller_action)
 
