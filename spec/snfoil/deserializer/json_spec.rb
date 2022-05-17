@@ -26,6 +26,10 @@ RSpec.describe SnFoil::Deserializer::JSON do
       expect(parsed_value[:interesting]).to eq 'tetris'
     end
 
+    it 'properly finds namespaced values' do
+      expect(parsed_value[:treasure]).to eq 'gold'
+    end
+
     it 'uses options[:key] to find a value' do
       expect(parsed_value[:lid]).to eq 'b9037e4a-ba86-4e0d-960c-c793baeee678'
     end
@@ -73,6 +77,7 @@ class TestJsonDeserializer
   attribute :id
   attribute :lid, key: 'local:id'
   attribute :interesting, prefix: :prefixed_
+  attribute :treasure, namespace: %i[deep namespaced]
 
   attribute :other
   attribute(:odd, key: :transformed)

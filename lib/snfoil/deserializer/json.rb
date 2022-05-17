@@ -86,9 +86,17 @@ module SnFoil
           elsif with
             send(with, input, key, **options)
           else
-            value_key = options.fetch(:key) { key }
-            value_key = "#{options[:prefix]}#{key}".to_sym if options[:prefix]
+            find_by_key(input, key, **options)
+          end
+        end
 
+        def find_by_key(input, key, **options)
+          value_key = options.fetch(:key) { key }
+          value_key = "#{options[:prefix]}#{key}".to_sym if options[:prefix]
+
+          if options[:namespace]
+            input.dig(*options[:namespace], value_key.to_sym)
+          else
             input[value_key.to_sym]
           end
         end

@@ -518,6 +518,36 @@ has_many :pets
   </tbody>
 </table>
 
+### JSON Deserializer
+
+##### Attrbute - Namespace
+
+The JSON Deserializer has attribute namespacing that isn't available in JSONAPI due to its structured nature.  
+
+- `namespace` an array of the nested keys needed to access a value
+
+This works with both `attribute` and `attributes`.
+
+
+```ruby
+attribute :rank, namespace: [:military_information]
+```
+
+Which would pull a nested field like in the following example.
+
+```json
+{
+  "name":"John",
+  ...
+  "military-info": {
+    "branch":"Army",
+    "rank":"Private First Class"
+  }
+  ...
+}
+```
+
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
