@@ -31,14 +31,19 @@ module SnFoil
       included do # rubocop:disable Metrics/BlockLength reason: These methods need to be in included to be overridable
         include SnFoil::Deserializer::JSON
 
-        module_eval do
-          def parse
-            input = data[:data] || data
-            return apply_transforms(data_id({}, input), input) unless input.is_a? Array
+        def parse
+          input = data[:data] || data
+          return apply_transforms(data_id({}, input), input) unless input.is_a? Array
 
-            input.map { |d| apply_transforms(data_id({}, d), d) }
-          end
+          input.map { |d| apply_transforms(data_id({}, d), d) }
         end
+
+        def to_hash
+          parse
+        end
+
+        alias_method :to_hash, :parse
+        alias_method :to_h, :parse
 
         def included
           @included ||= config[:included] || data[:included]

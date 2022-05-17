@@ -86,14 +86,6 @@ RSpec.describe SnFoil::Deserializer::Base do
       end
     end
   end
-
-  describe '#parse' do
-    it 'raises an error' do
-      expect do
-        deserializer.new(request).parse
-      end.to raise_error RuntimeError
-    end
-  end
 end
 
 class MiscBaseDeserializer

@@ -75,17 +75,6 @@ module SnFoil
           @data = normalize_keys(input)
           @config = config
         end
-
-        def parse
-          raise '#parse not implemented'
-        end
-
-        def to_hash
-          parse
-        end
-
-        alias_method :to_hash, :parse
-        alias_method :to_h, :parse
       end
 
       protected

@@ -35,6 +35,13 @@ module SnFoil
           apply_transforms({}, data)
         end
 
+        def to_hash
+          parse
+        end
+
+        alias_method :to_hash, :parse
+        alias_method :to_h, :parse
+
         protected
 
         def apply_transforms(output, input)
