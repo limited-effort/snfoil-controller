@@ -507,6 +507,19 @@ RSpec.describe SnFoil::Controller do
       expect(context_instance).to have_received(:controller_action).once
     end
 
+    context 'with method=>value' do
+      before do
+        allow(context_instance).to receive(:method_action)
+      end
+
+      it 'sends the method' do
+        including_class.new.run_context(:method_action, controller_action: :controller_action)
+
+        expect(context_instance).not_to have_received(:controller_action)
+        expect(context_instance).to have_received(:method_action).once
+      end
+    end
+
     context 'with options[:context] => value' do
       let(:other_context) { double }
       let(:other_context_instance) { double }

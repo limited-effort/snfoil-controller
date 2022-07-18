@@ -208,6 +208,18 @@ end
   </tbody>
 </table>
 
+You can directly call the context using the `#run_context` method and pass it the options.  It will automatically process either the `:context_action` or the `:controller_action` from the options.  This can be overridden by passing a method name to `#run_context`.
+
+```ruby
+...
+  context PeopleContext
+
+  def some_method(**options)
+    run_context(:elevate, **options) #=> Calls PeopleContext#elevate
+  end
+...
+```
+
 #### Serializer
 
 The main serializer intended to be called by the Controller.  Also the default serializer and block used by the '#serialize` method.
