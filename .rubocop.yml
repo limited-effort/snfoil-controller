@@ -28,7 +28,8 @@ Metrics/BlockLength:
 
 # ================ RSPEC ================
 RSpec/FilePath:
-  Enabled: false
+  CustomTransform:
+    SnFoil: snfoil
 
 RSpec/MultipleExpectations:
   Max: 5
