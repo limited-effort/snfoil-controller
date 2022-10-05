@@ -1,15 +1,12 @@
 # frozen_string_literal: true
 
 require 'snfoil/controller'
-require 'oj'
 
 require_relative 'canary'
 
 ENV['ISTEST'] = 'true'
 
 RSpec.configure do |config|
-  Oj.mimic_JSON
-
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end
