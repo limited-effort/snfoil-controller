@@ -63,7 +63,7 @@ module SnFoil
 
         def parse_attribute_transform(output, input, key, **options)
           value = find_attribute(input, key, **options)
-          return output unless !value.nil?
+          return output if value.nil?
 
           output.merge key => value
         end
