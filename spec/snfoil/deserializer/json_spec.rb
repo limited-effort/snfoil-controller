@@ -7,13 +7,14 @@ require 'snfoil/deserializer/json'
 
 RSpec.describe SnFoil::Deserializer::JSON do
   subject(:deserializer) { TestJsonDeserializer }
+  let(:config) { { value: true } }
 
   let(:request) do
     JSON.parse(File.read('spec/fixtures/deserialize_json.json'))
   end
 
   describe '#parse' do
-    let(:parsed_value) { deserializer.new(request).parse }
+    let(:parsed_value) { deserializer.new(request, **config).parse }
 
     it 'includes standard attributes' do
       expect(parsed_value[:name]).to eq 'Test Form'
@@ -60,6 +61,38 @@ RSpec.describe SnFoil::Deserializer::JSON do
         expect(parsed_value.keys).not_to include(:missing)
       end
     end
+
+    context 'when an attirbute has a conditional :if' do
+      context 'when the conditional is truthy' do
+        it 'should render the attribute when the conditional is true' do
+          expect(parsed_value[:passing_relationship][:lid]).to eq 'a4217889-4997-456c-99ce-cda87a1b5448'
+        end
+      end
+
+      context 'when the conditional is false' do
+        let(:config) { { value: false } }
+
+        it 'should not render the attribute' do
+          expect(parsed_value.keys).not_to include(:passing_relationship)
+        end
+      end
+    end
+
+    context 'when an attirbute has a conditional :unless' do
+      context 'when the conditional is truthy' do
+        it 'should render the attribute when the conditional is true' do
+          expect(parsed_value.keys).not_to include(:failing_relationship)
+        end
+      end
+
+      context 'when the conditional is false' do
+        let(:config) { { value: false } }
+
+        it 'should not render the attribute' do
+          expect(parsed_value[:failing_relationship][:lid]).to eq 'a4217889-4997-456c-99ce-cda87a1b5448'
+        end
+      end
+    end
   end
 end
 
@@ -87,6 +120,8 @@ class TestJsonDeserializer
 
   belongs_to(:missing, deserializer: MiscJsonDeserializer)
   belongs_to(:author, key: :target, deserializer: MiscJsonDeserializer)
+  belongs_to(:passing_relationship, key: :target, if: -> (_) { config[:value] }, deserializer: MiscJsonDeserializer)
+  belongs_to(:failing_relationship, key: :target, unless: -> (_) { config[:value] }, deserializer: MiscJsonDeserializer)
   has_one(:owner, deserializer: MiscJsonDeserializer)
   has_many(:environments, key: :envs, deserializer: MiscJsonDeserializer)
   has_many(:versions, deserializer: MiscJsonDeserializer)

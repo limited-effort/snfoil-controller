@@ -46,7 +46,19 @@ module SnFoil
 
         def apply_transforms(output, input)
           (self.class.snfoil_attribute_transforms || {}).reduce(output) do |transformed_output, transform|
-            apply_transform(transformed_output, input, transform[0], **transform[1])
+            transform_options = transform[1]
+            next transformed_output if transform_options[:if] && !check_conditional(transform_options[:if], input)
+            next transformed_output if transform_options[:unless] && check_conditional(transform_options[:unless], input)
+
+            apply_transform(transformed_output, input, transform[0], **transform_options)
+          end
+        end
+
+        def check_conditional(conditional, input)
+          if conditional.is_a? Symbol
+            send(conditional, input)
+          else
+            instance_exec(input, &conditional)
           end
         end
 
