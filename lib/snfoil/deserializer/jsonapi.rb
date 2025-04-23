@@ -28,7 +28,7 @@ module SnFoil
     module JSONAPI
       extend ActiveSupport::Concern
 
-      included do # rubocop:disable Metrics/BlockLength reason: These methods need to be in included to be overridable
+      included do # rubocop:disable Metrics/BlockLength --- reason: These methods need to be in included to be overridable
         include SnFoil::Deserializer::JSON
 
         def parse

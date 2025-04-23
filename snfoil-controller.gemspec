@@ -6,13 +6,13 @@ Gem::Specification.new do |spec|
   spec.name          = 'snfoil-controller'
   spec.version       = SnFoil::Controller::VERSION
   spec.authors       = ['Matthew Howes', 'Cliff Campbell']
-  spec.email         = ['howeszy@gmail.com', 'cliffcampbell@hey.com']
+  spec.email         = ['matt.howes@limitedeffort.io', 'cliffcampbell@hey.com']
 
   spec.summary       = 'Seperate Display Logic from Business Logic'
   spec.description   = 'A context-like experience for your controllers'
   spec.homepage      = 'https://github.com/limited-effort/snfoil-controller'
   spec.license       = 'Apache-2.0'
-  spec.required_ruby_version = '>= 2.6'
+  spec.required_ruby_version = '>= 3.0'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = spec.homepage
