@@ -28,7 +28,7 @@ module SnFoil
     module JSON
       extend ActiveSupport::Concern
 
-      included do # rubocop:disable Metrics/BlockLength reason: These methods need to be in included to be overridable
+      included do # rubocop:disable Metrics/BlockLength --- reason: These methods need to be in included to be overridable
         include SnFoil::Deserializer::Base
 
         def parse
@@ -111,7 +111,7 @@ module SnFoil
 
         def find_by_key(input, key, **options)
           value_key = options.fetch(:key) { key }
-          value_key = "#{options[:prefix]}#{key}".to_sym if options[:prefix]
+          value_key = :"#{options[:prefix]}#{key}" if options[:prefix]
 
           if options[:namespace]
             input.dig(*options[:namespace], value_key.to_sym)
