@@ -25,7 +25,7 @@ class PeopleController < ActionController::API
 
   context PeopleContext
   serializer PeopleSerializer
-  context PeopleDeserializer
+  deserializer PeopleDeserializer
 
   endpoint :create, do |object:, **options|
     if object.errors
@@ -377,7 +377,7 @@ How you want to format the keys in the incoming payload.  SnFoil::Deserializers 
   </thead>
   <tbody>
     <tr>
-      <td>tranform</td>
+      <td>transform</td>
       <td>symbol</td>
       <td>The inflection you want called on the key value. ex: `underscore`, `camelcase`</td>
       <td>false</td>
@@ -479,7 +479,7 @@ belongs_to :team
   </thead>
   <tbody>
     <tr>
-      <td>tranform</td>
+      <td>transform</td>
       <td>symbol</td>
       <td>The inflection you want called on the key value. ex: `underscore`, `camelcase`</td>
       <td>false</td>
@@ -516,7 +516,7 @@ has_many :pets
   </thead>
   <tbody>
     <tr>
-      <td>tranform</td>
+      <td>transform</td>
       <td>symbol</td>
       <td>The inflection you want called on the key value. ex: `underscore`, `camelcase`</td>
       <td>false</td>
