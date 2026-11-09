@@ -55,7 +55,7 @@ module SnFoil
         end
         alias_method :has_one, :belongs_to
 
-        def has_many(key, deserializer:, **options, &block) # rubocop:disable Naming/PredicateName
+        def has_many(key, deserializer:, **options, &block) # rubocop:disable Naming/PredicatePrefix
           (@snfoil_attribute_transforms ||= {})[key] = options.merge(deserializer: deserializer, transform_type: :has_many, block: block)
         end
 
